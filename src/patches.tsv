@@ -1,0 +1,96 @@
+# The values this mod patches, one per line:
+#
+#   FILE<TAB>PROPERTY<TAB>BASE<TAB>OP<TAB>LIMIT<TAB>SCOPE
+#
+# FILE is the MBIN path the game uses, relative to the data root.
+# PROPERTY is the field to rewrite.
+# BASE is the value the game ships today.
+# OP is mul (BASE x factor) or div (BASE / factor).
+# LIMIT is the upper bound for mul and the lower bound for div, so no value
+# can reach zero or run away. The floor has to stay low enough that the
+# manoeuvre can still be shortened by the same factor as the flight at the
+# highest factor offered, or the ship arrives mid manoeuvre again.
+# SCOPE tags the row. A variant asks for scopes with a factor each, so one
+# group can be scaled differently from another.
+#
+# The render step turns this table into the Lua patch list and into the
+# expected values that make verify checks the built EXML against.
+#
+# The scopes:
+#   forces    the steering forces that push a ship toward a dock, and that
+#             turn it into alignment on the way
+#   approach  the speed of the flight along the approach to the pad
+#   descent   the speed the ship drops onto the pad
+#   bounce    the spring settle and the bounce when the ship touches down
+#   manoeuvre the time the ship spends lining up with the pad
+#
+# What testing in game showed:
+#   forces    raising them speeds up the turn into alignment, but the
+#             flight to the pad stays a crawl
+#   approach  raising it speeds up the flight to the pad, but the ship
+#             arrives before it has finished turning
+#   Both at the same factor, so the turn and the flight stay in step.
+#   The ship still lands upside down at the higher factors. Neither more
+#     force, nor a longer landing window, nor a longer tip manoeuvre
+#     gives the ship the spin it needs: the alignment is a manoeuvre of
+#     fixed length, and the flight has to be short enough that the
+#     manoeuvre still fits inside it. At 2x it fits, at 10x the ship
+#     arrives mid manoeuvre and lands upside down.
+#   So the manoeuvre is shortened by the same factor as the flight.
+#
+# 10x is the ceiling. A 100x option was built and tested in game and the
+# ship did not land right, so it is not offered.
+#
+# Deliberately left alone:
+#   the descent speed, which shortens the same window
+#   the tip length and the angle the ship may tip up to. Raising those
+#     makes the ship fly on past the pad and over rotate, which is worse
+#     than the problem it was meant to fix.
+#   the roll the ship applies on its own and the roll during the docking
+#     approach. Neither made the spin any faster.
+#
+# The outposts are not in this table. Their landing runs on different values
+# and the outpost files are not patched, so a landing at an outpost is left
+# as the game ships it.
+#
+# Ruled out by testing, and deliberately absent:
+#   the cap on a ship's approach speed was in the first build, which
+#     changed nothing
+#   the player's own ship settings (the speed damper near a space base, the
+#     approach speed cap when arriving from the anomaly, the cockpit
+#     approach multiplier and the distance band the damper applies over)
+#     were in the Minimal build, which also changed nothing. That layer
+#     also governs how hard you can close on a station yourself, so leaving
+#     it alone is the better outcome.
+#
+# The docking rotation speed is deliberately absent too. It lives in
+# GCSPACESHIPGLOBALS and belongs to Faster Spaceship Docking Rotation
+# Reloaded, and this mod must not fight it.
+#
+# The game's own spelling of LandingManuevreTime is missing a "u". Do not
+# "fix" it here: the name has to match the data byte for byte, and make
+# verify fails on a property that is not in the patch.
+
+GLOBALS/GCAISPACESHIPGLOBALS.GLOBAL.MBIN	OutpostDockGetToApproachForce	2	mul	200	forces
+GLOBALS/GCAISPACESHIPGLOBALS.GLOBAL.MBIN	OutpostDockApproachSpeedForce	5	mul	500	forces
+GLOBALS/GCAISPACESHIPGLOBALS.GLOBAL.MBIN	OutpostDockMaxForce	400	mul	40000	forces
+GLOBALS/GCAISPACESHIPGLOBALS.GLOBAL.MBIN	DockingSpringTime	6.0	div	0.05	bounce
+GLOBALS/GCAISPACESHIPGLOBALS.GLOBAL.MBIN	DockingLandingBounceTime	0.8	div	0.05	bounce
+GLOBALS/GCAISPACESHIPGLOBALS.GLOBAL.MBIN	DockingLandingBounceHeight	0.5	div	0.05	bounce
+GLOBALS/GCAISPACESHIPGLOBALS.GLOBAL.MBIN	DockingLandingTime	1.6	div	0.05	manoeuvre
+GLOBALS/GCAISPACESHIPGLOBALS.GLOBAL.MBIN	DockingLandingTimeDirectional	1.0	div	0.05	manoeuvre
+GLOBALS/GCAISPACESHIPGLOBALS.GLOBAL.MBIN	DockingRotateStartTime	1.0	div	0.05	manoeuvre
+GLOBALS/GCAISPACESHIPGLOBALS.GLOBAL.MBIN	LandingManuevreTime	1.0	div	0.05	manoeuvre
+GLOBALS/GCAISPACESHIPGLOBALS.GLOBAL.MBIN	LandingManeuvreAlignTime	1.0	div	0.05	manoeuvre
+MODELS/SPACE/SPACESTATION/MODULARPARTS/ENTITIES/STATION_DOCK.ENTITY.MBIN	ApproachSpeed	100	mul	10000	approach
+MODELS/SPACE/SPACESTATION/SPACESTATION/ENTITIES/STATION.ENTITY.MBIN	ApproachSpeed	300	mul	10000	approach
+MODELS/SPACE/SPACESTATION/SPACESTATION/ENTITIES/STATION_ABANDONED.ENTITY.MBIN	ApproachSpeed	300	mul	10000	approach
+MODELS/SPACE/SPACESTATION/SPACESTATIONTYPEB/ENTITIES/STATIONTYPEB.ENTITY.MBIN	ApproachSpeed	300	mul	10000	approach
+MODELS/SPACE/NEXUS/NEXUS/ENTITIES/NEXUS.ENTITY.MBIN	ApproachSpeed	200	mul	10000	approach
+MODELS/SPACE/NEXUS/NEXUSEXTERIOR/ENTITIES/NEXUSEXTERIOR.ENTITY.MBIN	ApproachSpeed	300	mul	10000	approach
+MODELS/SPACE/SPACESTATION/MODULARPARTS/ENTITIES/STATION_DOCK.ENTITY.MBIN	LandingSpeed	10	mul	10000	descent
+MODELS/SPACE/SPACESTATION/SPACESTATION/ENTITIES/STATION.ENTITY.MBIN	LandingSpeed	10	mul	10000	descent
+MODELS/SPACE/SPACESTATION/SPACESTATION/ENTITIES/STATION_ABANDONED.ENTITY.MBIN	LandingSpeed	10	mul	10000	descent
+MODELS/SPACE/SPACESTATION/SPACESTATIONTYPEB/ENTITIES/STATIONTYPEB.ENTITY.MBIN	LandingSpeed	10	mul	10000	descent
+MODELS/SPACE/NEXUS/NEXUS/ENTITIES/NEXUS.ENTITY.MBIN	LandingSpeed	10	mul	10000	descent
+MODELS/SPACE/NEXUS/NEXUSEXTERIOR/ENTITIES/NEXUSEXTERIOR.ENTITY.MBIN	LandingSpeed	600	mul	10000	descent
