@@ -145,7 +145,6 @@ assets: assets/src/gallery-landing.jpg assets/generate.py
 # are build artifacts and are not tracked.
 video:
 	python3 assets/combine.py
-	python3 assets/combine.py --web
 
 clean:
 	rm -rf "$(BUILD)" "$(DIST)"

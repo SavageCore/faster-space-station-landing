@@ -101,8 +101,7 @@ the speed and the case labelled on every segment, and a timer that starts
 when the game takes the ship over and ends when the ship is down.
 
 ```sh
-python3 assets/combine.py            # lossless master, 2560x1440, a couple of GB
-python3 assets/combine.py --web      # browser friendly, crf 18
+python3 assets/combine.py            # lossless master, 2560x1440, a couple of GB, for upload
 ```
 
 Both ends of the timer are found in the footage rather than by hand. The
